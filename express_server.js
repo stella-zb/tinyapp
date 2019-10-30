@@ -82,6 +82,16 @@ app.get('/register', (req, res) => {
   res.render('urls_register', templateVars);
 });
 
+app.get('/login', (req, res) => {
+  const user = users[req.cookies['user_id']];
+  let templateVars = { 
+    urls: urlDatabase, 
+    username: req.cookies['username'],
+    user: user
+  };
+  res.render('urls_login', templateVars);
+});
+
 app.get('/urls/:shortURL', (req, res) => {
   const user = users[req.cookies['user_id']];
   let templateVars = { 
