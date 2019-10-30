@@ -5,21 +5,23 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
+      <div class="navbar-nav mr-auto">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
+      <div class="navbar-nav">
+        <% if (locals.username) { %>
+          <form method="POST" action="/logout" class="form-inline">
+            <label for="loginIn">Logged In As: <%= username %></label>
+            <button type="submit" class="btn btn-outline-dark" style="margin: 1em">Log Out</button>
+          </form>
+        <% } else { %>
+          <form method="POST" action="/login" class="form-inline">
+            <input class="form-control" type="text" name="username" placeholder="username" style="width: 200px; margin-right: 0.5em">
+            <button type="submit" class="btn btn-outline-dark">Login</button>
+          </form>
+        <% } %>
+      </div>
     </div>
-    <% if (username) { %>
-      <form method="POST" action="/logout" class="form-inline">
-        <label for="loginIn">Logged In As: <%= username %></label>
-        <button type="submit" class="btn btn-outline-dark" style="margin: 1em">Log Out</button>
-      </form>
-    <% } else { %>
-      <form method="POST" action="/login" class="form-inline">
-        <input class="form-control" type="text" name="username" placeholder="username" style="width: 200px; margin: 0.5em">
-        <button type="submit" class="btn btn-outline-dark">Login</button>
-      </form>
-    <% } %>
   </nav>
 </header>
