@@ -52,38 +52,42 @@ const emailLookup = (email) => {
 
 // GET method route
 app.get('/urls', (req, res) => {
+  const user = users[req.cookies['user_id']];
   let templateVars = { 
     urls: urlDatabase, 
     username: req.cookies['username'],
-    user_id: req.cookies['user_id']
+    user: user
   };
   console.log(templateVars);
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
+  const user = users[req.cookies['user_id']];
   let templateVars = { 
     urls: urlDatabase, 
     username: req.cookies['username'],
-    user_id: req.cookies['user_id']
+    user: user
   };
   res.render('urls_new', templateVars);
 });
 
 app.get('/register', (req, res) => {
+  const user = users[req.cookies['user_id']];
   let templateVars = { 
     urls: urlDatabase, 
     username: req.cookies['username'],
-    user_id: req.cookies['user_id']
+    user: user
   };
-  res.render('urls_register');
+  res.render('urls_register', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
+  const user = users[req.cookies['user_id']];
   let templateVars = { 
     shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],
     username: req.cookies['username'],
-    user_id: req.cookies['user_id']
+    user: user
   };
   res.render('urls_show', templateVars);
 });
@@ -120,7 +124,8 @@ app.post('/register', (req, res) => {
       email: req.body.email, 
       passport: req.body.password
     };
-    res.cookie('user_id', users[userRandomID]);
+
+    res.cookie('user_id', userRandomID);
     res.redirect('/urls');
   }
 });
