@@ -41,6 +41,15 @@ const generateRandomString = () => {
   return randomString;
 };
 
+const emailLookup = (email) => {
+  for (const userID in users) {
+    const user = users[userID];
+    if (user.email === email) {
+      return true;
+    }
+  }
+};
+
 // GET method route
 app.get('/urls', (req, res) => {
   let templateVars = { 
@@ -102,14 +111,18 @@ app.post('/logout', (req,res) => {
 });
 
 app.post('/register', (req, res) => {
-  let userRandomID = generateRandomString();
-  users[userRandomID] = { 
-    id: userRandomID, 
-    email: req.body.email, 
-    passport: req.body.password
-  };
-  res.cookie('user_id', users[userRandomID]);
-  res.redirect('/urls');
+  if (!req.body.email || !req.body.password || emailLookup(req.body.email)) {
+    res.sendStatus(400);
+  } else {
+    let userRandomID = generateRandomString();
+    users[userRandomID] = { 
+      id: userRandomID, 
+      email: req.body.email, 
+      passport: req.body.password
+    };
+    res.cookie('user_id', users[userRandomID]);
+    res.redirect('/urls');
+  }
 });
 
 app.post('/urls/:shortURL', (req, res) => {
