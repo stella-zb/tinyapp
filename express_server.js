@@ -121,13 +121,19 @@ app.get('/login', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const user = users[req.cookies['user_id']];
   const urls = urlsForUser(req.cookies['user_id']);
-  let templateVars = {
-    urls: urls,
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    user: user
-  };
-  res.render('urls_show', templateVars);
+  const shortURL = req.params.shortURL;
+  if (urlDatabase[shortURL].userID !== req.cookies['user_id']) {
+    res.redirect('/urls')
+  } else {
+    let templateVars = {
+      urls: urls,
+      user: user,
+      shortURL: shortURL, 
+      longURL: urlDatabase[shortURL].longURL
+    };
+    console.log(templateVars);
+    res.render('urls_show', templateVars);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
