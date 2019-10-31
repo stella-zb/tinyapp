@@ -136,7 +136,7 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/logout', (req,res) => {
-  res.clearCookie('username', req.body.username);
+  res.clearCookie('user_id', req.body.userID);
   res.redirect('/urls');
 });
 
