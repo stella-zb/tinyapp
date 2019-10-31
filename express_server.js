@@ -104,7 +104,9 @@ app.get('/login', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const user = users[req.cookies['user_id']];
   let templateVars = {
-    shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],
+    urls: urlDatabase,
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: user
   };
   res.render('urls_show', templateVars);
@@ -118,7 +120,7 @@ app.get("/u/:shortURL", (req, res) => {
 // POST method route
 app.post("/urls", (req, res) => {
   let randomURL = generateRandomString();
-  urlDatabase[randomURL] = req.body.longURL;
+  urlDatabase[randomURL] = { longURL: req.body.longURL };
   res.redirect(`/urls/${randomURL}`);
 });
 
