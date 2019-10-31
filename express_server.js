@@ -77,7 +77,11 @@ app.get('/urls/new', (req, res) => {
     urls: urlDatabase,
     user: user
   };
-  res.render('urls_new', templateVars);
+  if (!user){
+    res.redirect('/login');
+  } else {
+    res.render('urls_new', templateVars);
+  }
 });
 
 app.get('/register', (req, res) => {
