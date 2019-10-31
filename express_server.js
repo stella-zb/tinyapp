@@ -8,6 +8,9 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
+const morgan = require('morgan');
+app.use(morgan('dev'));
+
 
 // template engines
 app.set('view engine', 'ejs');
