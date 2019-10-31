@@ -67,7 +67,7 @@ const urlsForUser = (id) => {
   let urls = {};
   for (const shortURL in urlDatabase) {
     if (urlDatabase[shortURL].userID === id) {
-      urls[shortURL]= (urlDatabase[shortURL]);
+      urls[shortURL] = (urlDatabase[shortURL]);
     }
   }
   return urls;
@@ -91,7 +91,7 @@ app.get('/urls/new', (req, res) => {
     urls: urls,
     user: user
   };
-  if (!user){
+  if (!user) {
     res.redirect('/login');
   } else {
     res.render('urls_new', templateVars);
@@ -128,7 +128,7 @@ app.get('/urls/:shortURL', (req, res) => {
     let templateVars = {
       urls: urls,
       user: user,
-      shortURL: shortURL, 
+      shortURL: shortURL,
       longURL: urlDatabase[shortURL].longURL
     };
     console.log(templateVars);
