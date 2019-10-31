@@ -50,12 +50,21 @@ const emailLookup = (email) => {
   }
 };
 
+const passwordMatch = (email, password) => {
+  for (const userID in users) {
+    const user = users[userID];
+    if (user.email === email && user.password === password) {
+      return true;
+    }
+  }
+  return false;
+};
+
 // GET method route
 app.get('/urls', (req, res) => {
   const user = users[req.cookies['user_id']];
   let templateVars = { 
-    urls: urlDatabase, 
-    username: req.cookies['username'],
+    urls: urlDatabase,
     user: user
   };
   console.log(templateVars);
@@ -65,8 +74,7 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
   const user = users[req.cookies['user_id']];
   let templateVars = { 
-    urls: urlDatabase, 
-    username: req.cookies['username'],
+    urls: urlDatabase,
     user: user
   };
   res.render('urls_new', templateVars);
@@ -75,8 +83,7 @@ app.get('/urls/new', (req, res) => {
 app.get('/register', (req, res) => {
   const user = users[req.cookies['user_id']];
   let templateVars = { 
-    urls: urlDatabase, 
-    username: req.cookies['username'],
+    urls: urlDatabase,
     user: user
   };
   res.render('urls_register', templateVars);
@@ -85,8 +92,7 @@ app.get('/register', (req, res) => {
 app.get('/login', (req, res) => {
   const user = users[req.cookies['user_id']];
   let templateVars = { 
-    urls: urlDatabase, 
-    username: req.cookies['username'],
+    urls: urlDatabase,
     user: user
   };
   res.render('urls_login', templateVars);
@@ -96,7 +102,6 @@ app.get('/urls/:shortURL', (req, res) => {
   const user = users[req.cookies['user_id']];
   let templateVars = { 
     shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies['username'],
     user: user
   };
   res.render('urls_show', templateVars);
@@ -114,9 +119,20 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${randomURL}`);
 });
 
-app.post('/login', (req,res) => {
-  res.cookie('username', req.body.username);
-  res.redirect('/urls');
+app.post('/login', (req, res) => {
+  if (!emailLookup(req.body.email)) {
+    res.sendStatus(403);
+  }
+  if (!passwordMatch(req.body.email, req.body.password)) {
+    res.sendStatus(403);
+  } else {
+    for(userID in users){ 
+      if(users[userID].email === req.body.email) { 
+        res.cookie('user_id', userID);
+      }
+    }
+    res.redirect('/urls');
+  }
 });
 
 app.post('/logout', (req,res) => {
@@ -134,7 +150,6 @@ app.post('/register', (req, res) => {
       email: req.body.email, 
       passport: req.body.password
     };
-
     res.cookie('user_id', userRandomID);
     res.redirect('/urls');
   }
