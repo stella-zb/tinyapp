@@ -22,10 +22,10 @@ const urlDatabase = {
 };
 
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
+  "aJ48lW": {
+    id: "aJ48lW",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "123"
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -63,11 +63,22 @@ const passwordMatch = (email, password) => {
   return false;
 };
 
+const urlsForUser = (id) => {
+  let urls = {};
+  for (const shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      urls[shortURL]= (urlDatabase[shortURL]);
+    }
+  }
+  return urls;
+};
+
 // GET method route
 app.get('/urls', (req, res) => {
   const user = users[req.cookies['user_id']];
+  const urls = urlsForUser(req.cookies['user_id']);
   let templateVars = {
-    urls: urlDatabase,
+    urls: urls,
     user: user
   };
   res.render('urls_index', templateVars);
@@ -75,8 +86,9 @@ app.get('/urls', (req, res) => {
 
 app.get('/urls/new', (req, res) => {
   const user = users[req.cookies['user_id']];
+  const urls = urlsForUser(req.cookies['user_id']);
   let templateVars = {
-    urls: urlDatabase,
+    urls: urls,
     user: user
   };
   if (!user){
@@ -88,8 +100,9 @@ app.get('/urls/new', (req, res) => {
 
 app.get('/register', (req, res) => {
   const user = users[req.cookies['user_id']];
+  const urls = urlsForUser(req.cookies['user_id']);
   let templateVars = {
-    urls: urlDatabase,
+    urls: urls,
     user: user
   };
   res.render('urls_register', templateVars);
@@ -97,8 +110,9 @@ app.get('/register', (req, res) => {
 
 app.get('/login', (req, res) => {
   const user = users[req.cookies['user_id']];
+  const urls = urlsForUser(req.cookies['user_id']);
   let templateVars = {
-    urls: urlDatabase,
+    urls: urls,
     user: user
   };
   res.render('urls_login', templateVars);
@@ -106,8 +120,9 @@ app.get('/login', (req, res) => {
 
 app.get('/urls/:shortURL', (req, res) => {
   const user = users[req.cookies['user_id']];
+  const urls = urlsForUser(req.cookies['user_id']);
   let templateVars = {
-    urls: urlDatabase,
+    urls: urls,
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL].longURL,
     user: user
@@ -116,14 +131,15 @@ app.get('/urls/:shortURL', (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
 // POST method route
 app.post("/urls", (req, res) => {
+  const userID = req.cookies['user_id'];
   let randomURL = generateRandomString();
-  urlDatabase[randomURL] = { longURL: req.body.longURL };
+  urlDatabase[randomURL] = { longURL: req.body.longURL, userID: userID };
   res.redirect(`/urls/${randomURL}`);
 });
 
