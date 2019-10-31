@@ -11,6 +11,8 @@ app.use(cookieParser());
 const morgan = require('morgan');
 app.use(morgan('dev'));
 
+// Password Hashing with bcrypt
+const bcrypt = require('bcrypt');
 
 // template engines
 app.set('view engine', 'ejs');
@@ -21,18 +23,7 @@ const urlDatabase = {
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
-const users = {
-  "aJ48lW": {
-    id: "aJ48lW",
-    email: "user@example.com",
-    password: "123"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-};
+const users = {};
 
 // generating functions for data
 const generateRandomString = () => {
@@ -56,7 +47,7 @@ const emailLookup = (email) => {
 const passwordMatch = (email, password) => {
   for (const userID in users) {
     const user = users[userID];
-    if (user.email === email && user.password === password) {
+    if (user.email === email && bcrypt.compareSync(password, user.password)) {
       return true;
     }
   }
@@ -178,7 +169,7 @@ app.post('/register', (req, res) => {
     users[userRandomID] = {
       id: userRandomID,
       email: req.body.email,
-      password: req.body.password
+      password: bcrypt.hashSync(req.body.password, 10)
     };
     res.cookie('user_id', userRandomID);
     res.redirect('/urls');
