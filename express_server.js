@@ -123,7 +123,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const urls = urlsForUser(req.cookies['user_id']);
   const shortURL = req.params.shortURL;
   if (urlDatabase[shortURL].userID !== req.cookies['user_id']) {
-    res.redirect('/urls')
+    res.sendStatus(403);
   } else {
     let templateVars = {
       urls: urls,
@@ -194,8 +194,12 @@ app.post('/urls/:shortURL', (req, res) => {
 
 app.post('/urls/:shortURL/delete', (req, res) => {
   let shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
+  if (urlDatabase[shortURL].userID !== req.cookies['user_id']) {
+    res.sendStatus(403);
+  } else {
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
+  }
 });
 
 // make server listening on pointed port
