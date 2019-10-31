@@ -6,7 +6,7 @@ const PORT = 8080;
 // middleware
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 // template engines
@@ -18,18 +18,18 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
-const users = { 
+const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
-}
+};
 
 // generating functions for data
 const generateRandomString = () => {
@@ -63,7 +63,7 @@ const passwordMatch = (email, password) => {
 // GET method route
 app.get('/urls', (req, res) => {
   const user = users[req.cookies['user_id']];
-  let templateVars = { 
+  let templateVars = {
     urls: urlDatabase,
     user: user
   };
@@ -73,7 +73,7 @@ app.get('/urls', (req, res) => {
 
 app.get('/urls/new', (req, res) => {
   const user = users[req.cookies['user_id']];
-  let templateVars = { 
+  let templateVars = {
     urls: urlDatabase,
     user: user
   };
@@ -82,7 +82,7 @@ app.get('/urls/new', (req, res) => {
 
 app.get('/register', (req, res) => {
   const user = users[req.cookies['user_id']];
-  let templateVars = { 
+  let templateVars = {
     urls: urlDatabase,
     user: user
   };
@@ -91,7 +91,7 @@ app.get('/register', (req, res) => {
 
 app.get('/login', (req, res) => {
   const user = users[req.cookies['user_id']];
-  let templateVars = { 
+  let templateVars = {
     urls: urlDatabase,
     user: user
   };
@@ -100,7 +100,7 @@ app.get('/login', (req, res) => {
 
 app.get('/urls/:shortURL', (req, res) => {
   const user = users[req.cookies['user_id']];
-  let templateVars = { 
+  let templateVars = {
     shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],
     user: user
   };
@@ -126,8 +126,8 @@ app.post('/login', (req, res) => {
   if (!passwordMatch(req.body.email, req.body.password)) {
     res.sendStatus(403);
   } else {
-    for(userID in users){ 
-      if(users[userID].email === req.body.email) { 
+    for (const userID in users) {
+      if (users[userID].email === req.body.email) {
         res.cookie('user_id', userID);
       }
     }
@@ -135,7 +135,7 @@ app.post('/login', (req, res) => {
   }
 });
 
-app.post('/logout', (req,res) => {
+app.post('/logout', (req, res) => {
   res.clearCookie('user_id', req.body.userID);
   res.redirect('/urls');
 });
@@ -145,10 +145,10 @@ app.post('/register', (req, res) => {
     res.sendStatus(400);
   } else {
     let userRandomID = generateRandomString();
-    users[userRandomID] = { 
-      id: userRandomID, 
-      email: req.body.email, 
-      passport: req.body.password
+    users[userRandomID] = {
+      id: userRandomID,
+      email: req.body.email,
+      password: req.body.password
     };
     res.cookie('user_id', userRandomID);
     res.redirect('/urls');
