@@ -180,8 +180,9 @@ app.post('/register', (req, res) => {
 });
 
 app.post('/urls/:shortURL', (req, res) => {
-  let editURL = req.params.shortURL;
-  urlDatabase[editURL] = req.body.longURL;
+  const userID = req.cookies['user_id'];
+  let shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: userID };
   res.redirect('/urls');
 });
 
