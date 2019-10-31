@@ -11,6 +11,27 @@
 <body>
   <% include partials/_header %>
   <main style="margin: 1em;">
+    <% if (!user) { %>
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title mx-auto">Welcome</h3>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-6">
+                <p class="text-center">Have TinyApp account?</p>
+                <a href="/login"><button type="button" class="btn btn-primary btn-lg btn-block">Login</button></a>
+              </div>
+              <div class="col-6">
+                <p class="text-center">New to TinyApp?</p>
+                <a href="/register"><button type="button" class="btn btn-secondary btn-lg btn-block">Register</button></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } else { %>
     <h3>My URLs</h3>
     <table class="table">
       <thead>
@@ -40,6 +61,7 @@
         <% } %>
       </tbody>
     </table>
+    <% } %>
   </main>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
