@@ -5,20 +5,12 @@ const PORT = 8080;
 
 // middleware
 const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({extended: true}));
 const cookieSession = require('cookie-session');
-app.use(cookieSession({
-  name: 'session',
-  keys: ['tinyApp']
-}));
 const morgan = require('morgan');
-app.use(morgan('dev'));
-
-// Password Hashing with bcrypt
 const bcrypt = require('bcrypt');
 
-// template engines
-app.set('view engine', 'ejs');
+// generating functions for data
+const { generateRandomString, getUserByEmail, passwordMatch, urlsForUser } = require('./helpers.js');
 
 // database
 const urlDatabase = {
@@ -28,164 +20,184 @@ const urlDatabase = {
 
 const users = {};
 
-// generating functions for data
-const { getUserByEmail } = require('./helpers.js');
+// template engines
+app.set('view engine', 'ejs');
 
-const generateRandomString = () => {
-  let randomString = '';
-  const charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 6; i++) {
-    randomString += charset.charAt(Math.floor(Math.random() * charset.length));
-  }
-  return randomString;
-};
+// use middleware
+app.use(bodyParser.urlencoded({extended: true}));
 
-const passwordMatch = (email, password) => {
-  for (const userID in users) {
-    const user = users[userID];
-    if (user.email === email && bcrypt.compareSync(password, user.password)) {
-      return true;
-    }
-  }
-  return false;
-};
+app.use(cookieSession({
+  name: 'session',
+  keys: ['tinyApp']
+}));
 
-const urlsForUser = (id) => {
-  let urls = {};
-  for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      urls[shortURL] = (urlDatabase[shortURL]);
-    }
-  }
-  return urls;
-};
+app.use(morgan('dev'));
+
+app.use((req, res, next) => {
+  req.user = users[req.session.userID];
+
+  next();
+});
 
 // GET method route
+app.get('/', (req, res) => {
+  if (!req.user) {
+    return res.redirect('/login');
+  }
+
+  return res.redirect('/urls');
+});
+
 app.get('/urls', (req, res) => {
-  const user = users[req.session.user_id];
-  const urls = urlsForUser(req.session.user_id);
+  const urls = urlsForUser(req.session.userID, urlDatabase);
+
   let templateVars = {
     urls: urls,
-    user: user
+    user: req.user
   };
-  res.render('urls_index', templateVars);
+
+  return res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
-  const user = users[req.session.user_id];
-  const urls = urlsForUser(req.session.user_id);
+  const urls = urlsForUser(req.session.userID, urlDatabase);
+
   let templateVars = {
     urls: urls,
-    user: user
+    user: req.user
   };
-  if (!user) {
-    res.redirect('/login');
-  } else {
-    res.render('urls_new', templateVars);
+
+  if (!req.user) {
+    return res.redirect('/login');
   }
+
+  return res.render('urls_new', templateVars);
 });
 
 app.get('/register', (req, res) => {
-  const user = users[req.session.user_id];
-  const urls = urlsForUser(req.session.user_id);
+  const urls = urlsForUser(req.session.userID, urlDatabase);
+
   let templateVars = {
     urls: urls,
-    user: user
+    user: req.user
   };
-  res.render('urls_register', templateVars);
+
+  return res.render('urls_register', templateVars);
 });
 
 app.get('/login', (req, res) => {
-  const user = users[req.session.user_id];
-  const urls = urlsForUser(req.session.user_id);
+  const urls = urlsForUser(req.session.userID, urlDatabase);
+
   let templateVars = {
     urls: urls,
-    user: user
+    user: req.user
   };
-  res.render('urls_login', templateVars);
+
+  return res.render('urls_login', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const user = users[req.session.user_id];
-  const urls = urlsForUser(req.session.user_id);
-  const shortURL = req.params.shortURL;
-  if (urlDatabase[shortURL].userID !== req.session.user_id) {
-    res.sendStatus(403);
-  } else {
-    let templateVars = {
-      urls: urls,
-      user: user,
-      shortURL: shortURL,
-      longURL: urlDatabase[shortURL].longURL
-    };
-    console.log(templateVars);
-    res.render('urls_show', templateVars);
+  const urls = urlsForUser(req.session.userID, urlDatabase);
+
+  if (!urlDatabase[req.params.shortURL]) {
+    return res.status(400).send('Huh? Bad Request - Error 400');
   }
+
+  if (urlDatabase[req.params.shortURL].userID !== req.session.userID) {
+    return res.status(403).send('Access Denied! You don\'t have permission to access - Error 403');
+  }
+  
+  let templateVars = {
+    urls: urls,
+    user: req.user,
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL
+  };
+  
+  return res.render('urls_show', templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  
+  return res.redirect(longURL);
 });
 
 // POST method route
 app.post("/urls", (req, res) => {
-  const userID = req.session.user_id;
+  const userID = req.session.userID;
   let randomURL = generateRandomString();
-  urlDatabase[randomURL] = { longURL: req.body.longURL, userID: userID };
-  res.redirect(`/urls/${randomURL}`);
+
+  urlDatabase[randomURL] = {
+    longURL: req.body.longURL,
+    userID: userID
+  };
+
+  return res.redirect(`/urls/${randomURL}`);
 });
 
 app.post('/login', (req, res) => {
   if (!getUserByEmail(req.body.email, users)) {
-    res.sendStatus(403);
-  } else if (!passwordMatch(req.body.email, req.body.password)) {
-    res.sendStatus(403);
-  } else {
-    for (const userID in users) {
-      if (users[userID].email === req.body.email) {
-        req.session.user_id = userID;
-      }
-    }
-    res.redirect('/urls');
+    return res.status(403).send('Access Denied! Double check your email or passport - Error 403');
   }
+  
+  if (!passwordMatch(req.body.email, req.body.password, users)) {
+    return res.status(403).send('Access Denied! Double check your email or passport - Error 403');
+  }
+
+  for (const userID in users) {
+    if (users[userID].email === req.body.email) {
+      req.session.userID = userID;
+    }
+  }
+
+  return res.redirect('/urls');
 });
 
 app.post('/logout', (req, res) => {
-  req.session.user_id = null;
-  res.redirect('/urls');
+  req.session.userID = null;
+
+  return res.redirect('/urls');
 });
 
 app.post('/register', (req, res) => {
   if (!req.body.email || !req.body.password || getUserByEmail(req.body.email, users)) {
-    res.sendStatus(400);
-  } else {
-    let userRandomID = generateRandomString();
-    users[userRandomID] = {
-      id: userRandomID,
-      email: req.body.email,
-      password: bcrypt.hashSync(req.body.password, 10)
-    };
-    req.session.user_id = userRandomID;
-    res.redirect('/urls');
+    return res.status(400).send('Huh? Bad Request - Error 400');
   }
+  
+  let userRandomID = generateRandomString();
+  
+  users[userRandomID] = {
+    id: userRandomID,
+    email: req.body.email,
+    password: bcrypt.hashSync(req.body.password, 10)
+  };
+  req.session.userID = userRandomID;
+  
+  return res.redirect('/urls');
 });
 
 app.post('/urls/:shortURL', (req, res) => {
-  const userID = req.session.user_id;
+  const userID = req.session.userID;
   let shortURL = req.params.shortURL;
-  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: userID };
-  res.redirect('/urls');
+
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: userID
+  };
+  
+  return res.redirect('/urls');
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
   let shortURL = req.params.shortURL;
-  if (urlDatabase[shortURL].userID !== req.session.user_id) {
-    res.sendStatus(403);
-  } else {
-    delete urlDatabase[shortURL];
-    res.redirect('/urls');
+
+  if (urlDatabase[shortURL].userID !== req.session.userID) {
+    return res.status(403).send('Access Denied! You don\'t have permission to access - Error 403');
   }
+
+  delete urlDatabase[shortURL];
+  return res.redirect('/urls');
 });
 
 // make server listening on pointed port
