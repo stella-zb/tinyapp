@@ -1,10 +1,9 @@
 const getUserByEmail = (email, database) => {
   for (const userID in database) {
-    const user = database[userID];
-    if (user.email === email) {
-      return true;
+    if (database[userID].email === email) {
+      return userID;
     } else {
-      return false;
+      return undefined;
     }
   }
 };

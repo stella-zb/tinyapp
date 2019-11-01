@@ -139,8 +139,7 @@ app.post("/urls", (req, res) => {
 app.post('/login', (req, res) => {
   if (!getUserByEmail(req.body.email, users)) {
     res.sendStatus(403);
-  }
-  if (!passwordMatch(req.body.email, req.body.password)) {
+  } else if (!passwordMatch(req.body.email, req.body.password)) {
     res.sendStatus(403);
   } else {
     for (const userID in users) {
